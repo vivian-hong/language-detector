@@ -1,0 +1,292 @@
+//
+// LanguageList.cpp --	Creates lists of languages that holds their 
+//			arrays of trigrams and does math to find 
+//			similarity between known and unknown files
+//	by: Vivian Hong
+//    date: 11/14/2015
+//
+#include <iostream>
+#include <fstream>
+using namespace std;
+#include "langlist.h"
+#include <cmath>
+
+//
+// LanguageList -- constructor: initializes class variables
+//	args: none
+//	rets: none
+//
+LanguageList::LanguageList()
+{
+	capacity = 0;
+	used = 0;
+	lang = NULL;
+	language = NULL;
+	in_order = NULL;
+	order_lang = NULL;
+	order_used = 0;
+	order_capacity = 0;
+}
+//
+// add -- adds languages to an array and a Language
+//	  class to an array
+//
+//	args: a single trigram and a file name
+//	rets: none
+//
+void LanguageList::add (string l, string fName)
+{
+	int i;
+	if (used == capacity){
+		expand();
+	}
+	if (used == 0){
+		lang[used] = l;
+		language[used].get_trigram(fName);
+		used++;
+	}
+	else{
+		for (i = 0; i<used; i++){
+			if (lang[i]==l){
+			       	language[i].get_trigram(fName);	
+				break;
+			}
+		}
+		if (i == used){
+			lang[used] = l;
+			language[used].get_trigram(fName);
+			used++;
+		}
+	}
+}
+//
+// expand -- expands language and Language class array when needed
+//	args: none
+//	rets: none
+//
+void LanguageList::expand ()
+{
+	int i;
+    	string *bigger_array = new string[capacity*2 + 1];
+	if (lang != NULL){
+       		for (i=0; i<capacity; i++){
+       			bigger_array[i] = lang[i];
+       		}
+	}
+	delete[] lang;
+   	lang = bigger_array;
+	Language *bigger = new Language[capacity*2 + 1];
+	for (i=0; i<used; i++){
+		bigger[i] = language[i];
+	}
+	delete[] language;
+	language = bigger;
+	capacity = capacity * 2 + 1;
+
+
+}
+//
+// print_freq -- prints frequencies of trigrams, trigrams,
+//		 and the total amount of trigrams
+//	args: none
+//	rets: none
+//
+void LanguageList::print_freq()
+{
+	for( int i = 0 ; i < used ; i++ ){
+		cout << "Frequency for " << lang[i] << endl;
+		int total_trigrams = language[i].get_used();
+		for (int j = 0; j < total_trigrams; j++){
+			int repeat = language[i].get_repeat(j);
+			string store = language[i].get_store(j);
+			cout << repeat << " " << store << endl;
+		}
+		cout << "total trigrams " << total_trigrams<< endl;
+	}
+}
+// calculate -- calculates similarity between known and unknonw
+//		files and stores the values in arrays and calls
+//		print function
+//	args: none
+//	rets: none
+//
+void LanguageList::calculate()
+{
+	for (int i=0; i<used; i++){
+		if (lang[i] == "Unknown"){
+			for (int j=0; j<i; j++){
+				if (lang[j] != "Unknown"){
+					TrigramVector known = language[j].get_class();
+					TrigramVector unknown = language[i].get_class();;
+					make_shared_array(known, unknown,j);
+					numerator = calculate_num(j);
+					denominator = calculate_denom(j);
+					similarity_num = numerator/denominator;
+					language[j].add_similarity(similarity_num);
+				}
+			}
+		}
+	}
+	print_similarity();
+}
+//
+// make_shared_array -- creates an array of the shared trigrams
+//			between known and unknown files
+//	args: two TrigramVector classes and one int for the Language
+//	      class that it should be stored in
+//	rets: none
+//
+void LanguageList::make_shared_array(TrigramVector known, TrigramVector unknown, int know)
+{
+	for (int i=0; i<known.used; i++){
+		for (int j=0; j<unknown.used; j++){
+			if (known.store[i] == unknown.store[j]){
+				language[know].add_shared(known.store[i], known.repeat[i], unknown.repeat[i], known.used, unknown.used);
+			}
+		}
+	}
+}
+//
+// square -- squares float
+//	args: one float
+//	rets: float (squared value)
+//
+float LanguageList::square(float a)
+{
+	float square = pow(a,2);
+	return square; 
+}
+//
+// root -- gets the square root of a float
+//	args: one float
+//	rets: float (square root)
+//
+float LanguageList::root(float a)
+{
+	float root = sqrt(a);
+	return root;
+}
+//
+// calculate_num -- calculates the numerator for the "cosine" calculation
+//	args: int to tell which Language class
+//	rets: float (numerator)
+//
+float LanguageList::calculate_num(int know)
+{
+	float numerator=0.0;
+	for (int i=0; i<language[know].used; i++){
+		float known = language[know].known_normalized[i];
+		float unknown = language[know].unknown_normalized[i];;
+		numerator += known*unknown;
+	}
+	return numerator;
+}
+//
+// calculate_denom -- calculates the denominator for the "cosine" calculation
+//	args: int to tell which Language class
+//	rets: float (denominator)
+//
+float LanguageList::calculate_denom(int know)
+{
+	float sum_known_squared=0.0;
+	float sum_unknown_squared=0.0;
+	for (int i=0; i<language[know].used; i++){
+		float squared_known = square(language[know].known_normalized[i]);
+		sum_known_squared += squared_known;
+ 		float squared_unknown = square(language[know].unknown_normalized[i]);
+		sum_unknown_squared += squared_unknown;
+	}
+	float root_known = root(sum_known_squared);
+	float root_unknown = root(sum_unknown_squared);
+	float denom = root_known * root_unknown; 
+	return denom;
+}
+//
+// print_similarity -- prints the unknown filename, similarities
+//		       between known languages (in order of similarity)
+//	args: none
+//	rets: none
+//
+void LanguageList::print_similarity()
+{
+	int n = 0;
+	for (int i=0; i<used; i++){
+		if (lang[i] == "Unknown"){ //accounts for multiple unknowns
+			cout << lang[i]<<endl;
+			for (int j=0; j<i; j++){
+				if (lang[j] != "Unknown"){
+					float sim = language[j].similarity[n];
+					order_add(sim, lang[j]);
+				}
+			}
+		}
+		for (int k=order_used-1; k>=0; k--){
+			cout << "  " << order_lang[k] << ": "<<in_order[k]<< endl;
+		}
+	}
+	n++;
+}
+//
+// order_add -- adds languages to array of know languages
+//		in order, adds similarities to array of
+//		similarities in order
+//	args: float similarity and string language
+//	rets: none
+//
+void LanguageList::order_add(float s, string l)
+{
+	int i;
+	if (order_used == order_capacity){
+		order_expand();
+	}
+	if (order_used == 0){
+		in_order[order_used] = s;
+		order_lang[order_used] = l;
+		order_used++;
+	}
+	else {
+		for (i = order_used; i > 0; i--){
+			if (in_order[i-1] > s){
+				in_order[i] = in_order[i-1];
+				order_lang[i] = order_lang[i-1];
+			}
+			else if (in_order [i-1] < s){
+				in_order[i] = s;
+				order_lang[i] = l;
+				order_used++;
+				break;
+			}
+		}
+		if (i == 0){
+			in_order[i] = s;
+			order_lang[i] = l;
+			order_used++;
+		}
+	}
+}
+// 
+// order_expand -- expands the in_order and order_lang arrays
+//	args: none
+//	rets: none
+//
+void LanguageList::order_expand()
+{
+
+	int i;
+    	float *bigger_array = new float[order_capacity*2 + 1];
+	if (in_order != NULL){
+       		for (i=0; i<order_capacity; i++){
+       			bigger_array[i] = in_order[i];
+       		}
+	}
+	delete[] in_order;
+   	in_order = bigger_array;
+	string *bigger = new string[order_capacity*2 + 1];
+	for (i=0; i<order_capacity; i++){
+		bigger[i] = order_lang[i];
+	}
+	delete[] order_lang;
+	order_lang = bigger;
+	order_capacity = order_capacity * 2 + 1;
+
+}

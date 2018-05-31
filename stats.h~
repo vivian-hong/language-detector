@@ -1,0 +1,10 @@
+//
+//	stats.h -- declares statistics functions
+//		  by: Vivian Hong
+//		date: 11/29/15
+//  
+//const string UNKNOWN = "Unknown";
+
+//int LanguageList::number_known();
+//int LanguageList::numberator(int);
+//int LanguageList::denominator(int);

@@ -1,0 +1,25 @@
+//
+//	Statistics.cpp -- calcualtes similarity between known and unknown
+//					  language trigrams
+//		  by: Vivian Hong
+//		date: 11/29/15
+//
+//#include <iostream>
+//#include <fstream>
+//using namespace std;
+//#include "stats.h"
+//#include "langlist.h"
+
+//int LanguageList::number_known()
+//{
+//	int known_languages;
+//	for (int i=0; i < used; i++){
+//		if (lang[i]==UNKNOWN){
+//			known_languages = i-1;
+//			return known_languages;
+//		}
+//	}
+//}
+
+//int LanguageList::numerator(int known)
+//{

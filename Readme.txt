@@ -1,0 +1,33 @@
+name: Vivian Hong
+date: 11/18/15
+
+Classes:
+Trigram Vector
+
+This class has functions that break up text files of a certain language into trigrams in order that they may be analyzed for similarities with know language text files to determine the language of the file being tested. This class also contains a dynamic array (supplemented by the expand function) in order to hold the trigrams and a print function to print out the trigrams. This class also sorts the trigrams and gets rid of repeats
+
+Language
+
+This class holds an instance of the TrigramVector class and is used to hold the arrays of trigrams for each language. It also holds strings of similarites calculated in each known language for each unknown language.The array of similarities is held in the known language's class.
+
+LanguageList
+
+This class holds lists of languages and a dynamic array of the Language class. It also holds all the calculations for analyzing similarities between files
+
+Operating Instructions:
+
+When running the program, the user will be asked for a filename which should hold the names of all the test languages files names and the unknown file names (at the end of the list). Capitalization in the file name matters. 
+
+List of files:
+TrigramVector.cpp
+Language.cpp
+LanguageList.cpp
+lang.h
+langlist.h
+trigram.h
+Readme.txt
+main.cpp
+
+To compile (all on one line):
+
+clang++ -Wall -Wextra -g TrigramVector.cpp main.cpp LanguageList.cpp Language.cpp

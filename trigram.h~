@@ -1,0 +1,23 @@
+//
+// trigram.h --  holds class Trigram
+//	  by: Vivian Hong
+//	date: 11/15/2015
+//
+const int TRIGRAM_LENGTH = 3;
+
+class TrigramVector
+{
+public:
+	TrigramVector();
+	bool	add(string);
+	void	get_trigram(string);
+	int 	capacity;
+	int	used;
+	string	*store;
+	int	*repeat;
+	void print_freq();
+private:
+	void 	expand();
+	bool 	is_in(string);
+};
+
